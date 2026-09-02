@@ -50,6 +50,12 @@ jobs:
             -backend-config="key=${{ vars.TF_STATE_KEY }}" \
             -backend-config="region=${{ vars.TF_STATE_REGION }}"
 
+      - name: Import existing Skill blueprint
+        run: |
+          if ! terraform state list | rg --fixed-strings --quiet 'port_blueprint.skill'; then
+            terraform import -input=false port_blueprint.skill skill
+          fi
+
       - name: Terraform validate
         run: terraform validate
 

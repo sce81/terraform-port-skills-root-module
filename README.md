@@ -62,12 +62,9 @@ Markdown heading becomes the title and description. This supports the current
   `github_ocean_installation_id`.
 - S3 backend configuration for Terraform state.
 
-If Port already has a `skill` blueprint, import it once before the initial
-apply:
-
-```bash
-terraform import port_blueprint.skill skill
-```
+The GitHub Actions sync workflow imports an existing `skill` blueprint into
+the configured remote state before its first apply. No local Terraform command
+is required.
 
 ## Local use
 
@@ -101,5 +98,7 @@ Configure these environment-scoped GitHub variables:
 - `TF_STATE_BUCKET`
 - `TF_STATE_KEY`
 
-The workflow runs `terraform init`, `terraform validate`, and `terraform apply`.
+The workflow runs `terraform init`, imports the existing shared `skill`
+blueprint when it is not yet in state, then runs `terraform validate` and
+`terraform apply`.
 GitHub Ocean reports the run outcome back to Port.
