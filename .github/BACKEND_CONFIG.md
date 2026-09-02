@@ -1,6 +1,6 @@
 # Terraform Backend Configuration
 
-This document explains the Terraform backend options for the Port Skills modules.
+This document explains backend options for the Port Skills modules.
 
 ## Default Configuration
 
@@ -22,13 +22,83 @@ backend "local" {
 - ❌ Production (no remote backup)
 - ❌ CI/CD pipelines (security risk)
 
-## Production Setup: S3 Backend
+## Recommended: Terraform Cloud Backend
 
-For production and team environments, use S3 backend:
+**Best option for teams and production** — Use [Terraform Cloud](https://app.terraform.io/):
 
-### Prerequisites
+### Setup
+
+1. **Create Terraform Cloud account:**
+   - Go to https://app.terraform.io
+   - Sign up (free tier available)
+   - Create organization
+
+2. **Generate API token:**
+   - Settings → Tokens → Create API token
+   - Save it securely
+
+3. **Create `backend.tf`:**
+
+```hcl
+terraform {
+  cloud {
+    organization = "your-org-name"
+    
+    workspaces {
+      name = "port-skills"
+    }
+  }
+}
+```
+
+4. **Authenticate locally:**
+
+```bash
+terraform login
+# Paste your API token when prompted
+```
+
+5. **Initialize:**
+
+```bash
+terraform init
+```
+
+### Benefits
+
+✅ **Free tier:** Includes state management, runs, VCS integration  
+✅ **State management:** Remote, encrypted, versioned  
+✅ **Team collaboration:** Multiple users, approval workflows  
+✅ **Run history:** View all applies and plans  
+✅ **Cost estimation:** Before/after changes  
+✅ **Drift detection:** Automatic state checks  
+✅ **No DynamoDB** — Handles locking automatically  
+
+### CI/CD Integration
+
+For GitHub Actions, use API token:
+
+```yaml
+- name: Setup Terraform
+  uses: hashicorp/setup-terraform@v3
+  with:
+    cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+- name: Terraform Init
+  run: terraform init
+```
+
+Add to GitHub Secrets:
+- `TF_API_TOKEN` — Your Terraform Cloud API token
+
+## Alternative: S3 Backend (Simple)
+
+If you prefer AWS S3 without state locking:
+
+### Setup
 
 1. **Create S3 bucket:**
+
 ```bash
 aws s3api create-bucket \
   --bucket terraform-state-port-skills \
@@ -36,6 +106,7 @@ aws s3api create-bucket \
 ```
 
 2. **Enable versioning:**
+
 ```bash
 aws s3api put-bucket-versioning \
   --bucket terraform-state-port-skills \
@@ -43,6 +114,7 @@ aws s3api put-bucket-versioning \
 ```
 
 3. **Enable encryption:**
+
 ```bash
 aws s3api put-bucket-encryption \
   --bucket terraform-state-port-skills \
@@ -56,6 +128,7 @@ aws s3api put-bucket-encryption \
 ```
 
 4. **Block public access:**
+
 ```bash
 aws s3api put-public-access-block \
   --bucket terraform-state-port-skills \
@@ -63,55 +136,18 @@ aws s3api put-public-access-block \
     "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
 ```
 
-5. **Create DynamoDB table for state locking:**
-```bash
-aws dynamodb create-table \
-  --table-name terraform-locks-port-skills \
-  --attribute-definitions AttributeName=LockID,AttributeType=S \
-  --key-schema AttributeName=LockID,KeyType=HASH \
-  --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
-```
-
-### Configure Backend
-
-#### Option 1: Update provider.tf
-
-Edit `provider.tf` and replace the `backend` block:
-
-```hcl
-terraform {
-  backend "s3" {
-    bucket         = "terraform-state-port-skills"
-    key            = "port-skills/terraform.tfstate"
-    region         = "us-east-1"
-    encrypt        = true
-    dynamodb_table = "terraform-locks-port-skills"
-  }
-
-  required_version = ">= 1.0"
-  # ... rest of config
-}
-```
-
-Then reinitialize:
-```bash
-terraform init
-```
-
-#### Option 2: Backend config file (Recommended)
+5. **Configure backend:**
 
 Create `backend.hcl`:
 
 ```hcl
-# backend.hcl
-bucket         = "terraform-state-port-skills"
-key            = "port-skills/terraform.tfstate"
-region         = "us-east-1"
-encrypt        = true
-dynamodb_table = "terraform-locks-port-skills"
+bucket = "terraform-state-port-skills"
+key    = "port-skills/terraform.tfstate"
+region = "us-east-1"
+encrypt = true
 ```
 
-Keep `provider.tf` with empty backend:
+Update `provider.tf`:
 
 ```hcl
 terraform {
@@ -120,28 +156,13 @@ terraform {
 }
 ```
 
-Initialize with config file:
+Initialize:
 
 ```bash
 terraform init -backend-config=backend.hcl
 ```
 
-#### Option 3: Command-line flags (CI/CD)
-
-During init, pass backend config:
-
-```bash
-terraform init \
-  -backend-config="bucket=terraform-state-port-skills" \
-  -backend-config="key=port-skills/terraform.tfstate" \
-  -backend-config="region=us-east-1" \
-  -backend-config="encrypt=true" \
-  -backend-config="dynamodb_table=terraform-locks-port-skills"
-```
-
-## For GitHub Actions Workflows
-
-Update `.github/workflows/terraform-deploy.yml`:
+### CI/CD Integration
 
 ```yaml
 - name: Terraform Init
@@ -150,15 +171,13 @@ Update `.github/workflows/terraform-deploy.yml`:
       -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
       -backend-config="key=${{ vars.TF_STATE_KEY }}" \
       -backend-config="region=${{ vars.AWS_REGION }}" \
-      -backend-config="encrypt=true" \
-      -backend-config="dynamodb_table=${{ vars.TF_LOCKS_TABLE }}"
+      -backend-config="encrypt=true"
 ```
 
-Add repository variables in GitHub Settings → Variables:
+Add GitHub variables:
 - `TF_STATE_BUCKET` = `terraform-state-port-skills`
 - `TF_STATE_KEY` = `port-skills/terraform.tfstate`
 - `AWS_REGION` = `us-east-1`
-- `TF_LOCKS_TABLE` = `terraform-locks-port-skills`
 
 ## State File Safety
 
@@ -168,8 +187,6 @@ Add repository variables in GitHub Settings → Variables:
 - Versioning (recover previous states)
 - Encryption (protect sensitive data)
 - Access logging (audit who accesses state)
-- State locking (prevent concurrent modifications)
-- MFA delete (extra protection)
 
 ✅ **Restrict access:**
 - IAM policies limiting who can read/write
@@ -192,115 +209,90 @@ Add repository variables in GitHub Settings → Variables:
 
 ## Migrating State
 
-### From Local to S3
+### From Local to Terraform Cloud
 
 1. **Backup local state:**
+
 ```bash
 cp terraform.tfstate terraform.tfstate.backup
 ```
 
-2. **Update backend in provider.tf** (or create backend.hcl)
+2. **Create `backend.tf`:**
 
-3. **Reinitialize:**
+```hcl
+terraform {
+  cloud {
+    organization = "your-org"
+    workspaces {
+      name = "port-skills"
+    }
+  }
+}
+```
+
+3. **Authenticate:**
+
+```bash
+terraform login
+```
+
+4. **Initialize (will migrate automatically):**
+
 ```bash
 terraform init
 ```
 
+5. **Confirm in Terraform Cloud UI**
+
+### From Local to S3
+
+1. **Backup local state:**
+
+```bash
+cp terraform.tfstate terraform.tfstate.backup
+```
+
+2. **Create `backend.hcl`** (see S3 setup above)
+
+3. **Reinitialize:**
+
+```bash
+terraform init -backend-config=backend.hcl
+```
+
 4. **Confirm migration:**
+
 ```bash
 terraform state list
 ```
 
-5. **Update .gitignore** to exclude state files:
-```bash
-# .gitignore
-terraform.tfstate
-terraform.tfstate.*
-*.tfstate
-*.tfstate.*
-```
+## Comparison
 
-### Between S3 Buckets
+| Feature | Local | Terraform Cloud | S3 |
+|---------|-------|-----------------|-----|
+| **Cost** | Free | Free tier | ~$1-5/mo |
+| **Team Use** | ❌ No | ✅ Yes | ❌ Complex |
+| **Encryption** | ❌ No | ✅ Yes | ✅ Yes |
+| **Versioning** | ❌ No | ✅ Yes | ✅ Yes |
+| **State Locking** | ❌ No | ✅ Auto | ❌ Not included |
+| **Setup** | None | 5 min | 10 min |
+| **Runs/Plans** | N/A | ✅ Web UI | ❌ CLI only |
+| **Approvals** | ❌ No | ✅ Yes | ❌ No |
+| **Recommended** | Dev only | ✅ **Production** | Alternative |
 
-```bash
-# Backup old state
-aws s3 cp s3://old-bucket/path/terraform.tfstate .
+## Recommendation
 
-# Update backend configuration
-
-# Reinitialize
-terraform init
-
-# Migrate state
-terraform init -migrate-state
-```
-
-## Troubleshooting
-
-### "Backend has not been initialized"
-```bash
-terraform init
-```
-
-### "Error acquiring the state lock"
-State is locked (likely from incomplete operation):
-```bash
-# View lock info
-terraform force-unlock [LOCK_ID]
-```
-
-### "Access Denied" to S3 bucket
-Check IAM permissions:
-```bash
-aws iam get-user-policy --user-name [USER] --policy-name terraform
-```
-
-### State file is corrupted
-Restore from backup:
-```bash
-# Enable S3 versioning and recover previous version
-aws s3api get-object \
-  --bucket terraform-state-port-skills \
-  --key port-skills/terraform.tfstate \
-  --version-id [VERSION_ID] \
-  terraform.tfstate
-```
-
-## Monitoring State
-
-### CloudWatch Logs
-Enable S3 access logging:
-```bash
-aws s3api put-bucket-logging \
-  --bucket terraform-state-port-skills \
-  --bucket-logging-status '{"LoggingEnabled":{"TargetBucket":"terraform-logs","TargetPrefix":"state/"}}'
-```
-
-### CloudTrail
-Track API calls:
-```bash
-aws cloudtrail put-event-selectors \
-  --trail-name terraform-audit \
-  --event-selectors ReadWriteType=All,IncludeManagementEvents=true
-```
-
-## Summary
-
-| Aspect | Local | S3 |
-|--------|-------|-----|
-| **Setup** | None | Complex |
-| **Team Use** | ❌ No | ✅ Yes |
-| **Encryption** | ❌ No | ✅ Yes |
-| **Backup** | ❌ None | ✅ Versioning |
-| **Locking** | ❌ No | ✅ DynamoDB |
-| **Cost** | Free | ~$5/month |
-| **Security** | ❌ Low | ✅ High |
-
-**Recommendation**: Use **S3 backend** for anything beyond local testing.
+**Use Terraform Cloud** — It's:
+- ✅ Free tier for small teams
+- ✅ No infrastructure to manage
+- ✅ Automatic state locking
+- ✅ Web UI for state inspection
+- ✅ VCS integration (GitHub)
+- ✅ Policy as Code (paid)
 
 ## Resources
 
-- [Terraform Backend Documentation](https://developer.hashicorp.com/terraform/language/settings/backends)
-- [S3 Backend Configuration](https://developer.hashicorp.com/terraform/language/settings/backends/s3)
-- [State Locking](https://developer.hashicorp.com/terraform/language/state/locking)
-- [AWS S3 Security Best Practices](https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html)
+- [Terraform Cloud](https://app.terraform.io)
+- [Terraform Cloud Documentation](https://developer.hashicorp.com/terraform/cloud-docs)
+- [Backend Configuration](https://developer.hashicorp.com/terraform/language/settings/backends)
+- [S3 Backend](https://developer.hashicorp.com/terraform/language/settings/backends/s3)

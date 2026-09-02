@@ -53,8 +53,7 @@ jobs:
 
       - name: Terraform Init
         run: |
-          terraform init -reconfigure \
-            -backend=false
+          terraform init
 
       - name: Terraform Validate
         run: terraform validate
