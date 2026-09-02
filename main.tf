@@ -1,3 +1,6 @@
+# Terraform Port Skills Child Module
+# Repository: https://github.com/sce81/terraform-port-skills
+# Documentation: See Child-Modules/terraform-port-skills/README.md
 module "skills" {
   source = "${var.skills_source}?ref=${var.skills_ref}"
 

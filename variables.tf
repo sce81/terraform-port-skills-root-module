@@ -1,7 +1,8 @@
 variable "skills_source" {
-  description = "GitHub source for skills module"
+  description = "GitHub source for skills child module"
   type        = string
   default     = "github.com/sce81/terraform-port-skills"
+  # Reference: https://github.com/sce81/terraform-port-skills
 }
 
 variable "skills_ref" {

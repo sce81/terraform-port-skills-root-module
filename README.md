@@ -4,6 +4,10 @@ A Terraform module for managing **Port Skills** — reusable instruction sets th
 
 Use this module to define, organize, and govern skills across your organization through infrastructure-as-code.
 
+**Repositories:**
+- **Root Module**: https://github.com/sce81/terraform-port-skills-root-module (this repository)
+- **Child Module**: https://github.com/sce81/terraform-port-skills (see [Child-Modules/terraform-port-skills](../../../Child-Modules/terraform-port-skills))
+
 ## What This Does
 
 This module creates and manages:
