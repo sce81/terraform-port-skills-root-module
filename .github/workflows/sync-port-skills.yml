@@ -52,7 +52,7 @@ jobs:
 
       - name: Import existing Skill blueprint
         run: |
-          if ! terraform state list | rg --fixed-strings --quiet 'port_blueprint.skill'; then
+          if ! terraform state show port_blueprint.skill >/dev/null 2>&1; then
             terraform import -input=false port_blueprint.skill skill
           fi
 
