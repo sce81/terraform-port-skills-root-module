@@ -32,7 +32,7 @@ jobs:
       PORT_WORKFLOW_NODE_RUN_ID: ${{ inputs.port_workflow_node_run_id }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ vars.AWS_REGION }}
+      AWS_REGION: ${{ vars.TF_STATE_REGION }}
 
     steps:
       - name: Checkout
@@ -48,7 +48,7 @@ jobs:
           terraform init -reconfigure \
             -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
             -backend-config="key=${{ vars.TF_STATE_KEY }}" \
-            -backend-config="region=${{ vars.AWS_REGION }}"
+            -backend-config="region=${{ vars.TF_STATE_REGION }}"
 
       - name: Terraform validate
         run: terraform validate

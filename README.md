@@ -97,7 +97,7 @@ Configure these environment-scoped GitHub secrets:
 
 Configure these environment-scoped GitHub variables:
 
-- `AWS_REGION`
+- `TF_STATE_REGION`
 - `TF_STATE_BUCKET`
 - `TF_STATE_KEY`
 

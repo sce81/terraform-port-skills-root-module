@@ -70,7 +70,7 @@ The `sync-port-skills.yml` workflow uses backend config from GitHub variables:
     terraform init -reconfigure \
       -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
       -backend-config="key=${{ vars.TF_STATE_KEY }}" \
-      -backend-config="region=${{ vars.AWS_REGION }}"
+      -backend-config="region=${{ vars.TF_STATE_REGION }}"
   env:
     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -88,7 +88,7 @@ Configure in GitHub repository Settings:
 **Variables:**
 - `TF_STATE_BUCKET` = `port-tf-state-bucket-support`
 - `TF_STATE_KEY` = `simon-port/port-skills/terraform.tfstate`
-- `AWS_REGION` = `us-east-1`
+- `TF_STATE_REGION` = `us-east-1`
 
 ## File-Based Locking
 
