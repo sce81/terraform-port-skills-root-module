@@ -28,8 +28,8 @@ terraform {
 Create `backend.hcl`:
 
 ```hcl
-bucket = "your-terraform-state-bucket"
-key    = "port-skills/terraform.tfstate"
+bucket = "port-tf-state-bucket-support"
+key    = "simon-port/port-skills/terraform.tfstate"
 region = "us-east-1"
 ```
 
@@ -43,8 +43,8 @@ terraform init -reconfigure -backend-config=backend.hcl
 
 ```bash
 terraform init -reconfigure \
-  -backend-config="bucket=your-terraform-state-bucket" \
-  -backend-config="key=port-skills/terraform.tfstate" \
+  -backend-config="bucket=port-tf-state-bucket-support" \
+  -backend-config="key=simon-port/port-skills/terraform.tfstate" \
   -backend-config="region=us-east-1"
 ```
 
@@ -55,8 +55,8 @@ export AWS_ACCESS_KEY_ID="your-key"
 export AWS_SECRET_ACCESS_KEY="your-secret"
 
 terraform init -reconfigure \
-  -backend-config="bucket=your-terraform-state-bucket" \
-  -backend-config="key=port-skills/terraform.tfstate" \
+  -backend-config="bucket=port-tf-state-bucket-support" \
+  -backend-config="key=simon-port/port-skills/terraform.tfstate" \
   -backend-config="region=us-east-1"
 ```
 
@@ -83,9 +83,9 @@ Configure in GitHub repository Settings:
 - `AWS_SECRET_ACCESS_KEY` — AWS credentials
 
 **Variables:**
-- `TF_STATE_BUCKET` — Your S3 bucket name
-- `TF_STATE_KEY` — Path in bucket (e.g., `port-skills/terraform.tfstate`)
-- `AWS_REGION` — AWS region (e.g., `us-east-1`)
+- `TF_STATE_BUCKET` = `port-tf-state-bucket-support`
+- `TF_STATE_KEY` = `simon-port/port-skills/terraform.tfstate`
+- `AWS_REGION` = `us-east-1`
 
 ## File-Based Locking
 

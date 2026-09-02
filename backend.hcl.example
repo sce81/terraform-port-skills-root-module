@@ -1,0 +1,7 @@
+# Terraform S3 Backend Configuration
+# Copy this file to backend.hcl and use with:
+#   terraform init -reconfigure -backend-config=backend.hcl
+
+bucket = "port-tf-state-bucket-support"
+key    = "simon-port/port-skills/terraform.tfstate"
+region = "us-east-1"

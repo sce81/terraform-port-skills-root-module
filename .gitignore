@@ -27,6 +27,9 @@ terraform.rc
 .env.local
 .env.*.local
 
+# Backend configuration files
+backend.hcl
+
 # IDE
 .idea
 *.swp
