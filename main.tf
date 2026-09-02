@@ -116,17 +116,23 @@ resource "port_entity" "skill" {
   )
 
   properties = {
-    description = try(
-      each.value.front_matter.description,
-      trimspace(try(regexall("(?m)^#\\s+(.+)$", each.value.instructions)[0][0], "Instructions synchronized from ${each.key}.")),
-    )
-    instructions = each.value.instructions
-    location     = try(each.value.front_matter.location, var.default_skill_location)
-    references = [{
-      path        = each.key
-      content     = each.value.instructions
-      description = each.value.source_url
-    }]
-    assets = []
+    string_props = {
+      description = try(
+        each.value.front_matter.description,
+        trimspace(try(regexall("(?m)^#\\s+(.+)$", each.value.instructions)[0][0], "Instructions synchronized from ${each.key}.")),
+      )
+      instructions = each.value.instructions
+      location     = try(each.value.front_matter.location, var.default_skill_location)
+    }
+    array_props = {
+      object_items = {
+        references = [jsonencode({
+          path        = each.key
+          content     = each.value.instructions
+          description = each.value.source_url
+        })]
+        assets = []
+      }
+    }
   }
 }
