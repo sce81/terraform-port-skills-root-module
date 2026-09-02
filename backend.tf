@@ -1,31 +1,17 @@
 # Terraform Backend Configuration
 #
-# Default: Local backend storing state in terraform.tfstate
+# S3 Backend with file-based locking (use_lockfile = true)
+# Configured in: provider.tf
 #
-# RECOMMENDED for production: Terraform Cloud
-# - Go to https://app.terraform.io
-# - Create organization and API token
-# - Add backend.tf:
+# Initialize with backend config:
 #
-#   terraform {
-#     cloud {
-#       organization = "your-org-name"
-#       workspaces {
-#         name = "port-skills"
-#       }
-#     }
-#   }
+#   terraform init -reconfigure \
+#     -backend-config="bucket=your-bucket" \
+#     -backend-config="key=port-skills/terraform.tfstate" \
+#     -backend-config="region=us-east-1"
 #
-# - Run: terraform login
-# - Run: terraform init
+# Or with backend.hcl:
 #
-# Benefits: Free tier, state management, team collaboration, no DynamoDB needed
-#
-# Alternative: S3 Backend (without state locking)
-# - Create S3 bucket with versioning and encryption
-# - Run: terraform init -backend-config=backend.hcl
+#   terraform init -reconfigure -backend-config=backend.hcl
 #
 # See: .github/BACKEND_CONFIG.md for complete setup guide
-# See: https://developer.hashicorp.com/terraform/language/settings/backends/configuration
-
-# Local backend is configured in provider.tf
