@@ -1,0 +1,12 @@
+port_client_id     = "your_port_client_id"
+port_client_secret = "your_port_client_secret"
+port_base_url      = "https://api.getport.io"
+
+skills_source = "github.com/sce81/terraform-port-skills"
+skills_ref    = "1.0.0"
+
+skills = []
+skill_metadata = []
+skill_permissions = []
+publicly_accessible_skills = []
+skill_references = []
