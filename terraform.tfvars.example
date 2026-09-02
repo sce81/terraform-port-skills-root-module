@@ -1,12 +1,22 @@
-port_client_id     = "your_port_client_id"
-port_client_secret = "your_port_client_secret"
-port_base_url      = "https://api.getport.io"
+# GitHub repository containing SKILL.md files.
+skills_registry_owner      = "sce81"
+skills_registry_repository = "Port-Skills-Registry"
+skills_registry_branch     = "main"
 
-skills_source = "github.com/sce81/terraform-port-skills"
-skills_ref    = "1.0.0"
+# The current registry stores its Markdown skills in this directory.
+# Set to "" to discover Markdown files at every depth in the repository.
+skills_registry_path = "terraform-skills"
 
-skills = []
-skill_metadata = []
-skill_permissions = []
-publicly_accessible_skills = []
-skill_references = []
+# Default when a source file omits location in its YAML front matter.
+default_skill_location = "global"
+
+# Port roles allowed to trigger the sync workflow.
+sync_workflow_roles = ["Member"]
+
+# Installed Port GitHub Ocean integration.
+github_ocean_installation_id = "github-ocean"
+
+# Do not add Port or GitHub tokens here. Set:
+# PORT_CLIENT_ID
+# PORT_CLIENT_SECRET
+# TF_VAR_skills_registry_token

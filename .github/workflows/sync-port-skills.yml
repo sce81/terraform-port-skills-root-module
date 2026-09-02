@@ -1,0 +1,57 @@
+name: Sync Port Skills Registry
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: GitHub environment containing Port and registry credentials
+        required: true
+        type: choice
+        options: [Development, Staging, Production]
+      port_workflow_node_run_id:
+        description: Port workflow node run identifier
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: port-skills-sync-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync skills to Port
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      PORT_CLIENT_ID: ${{ secrets.PORT_CLIENT_ID }}
+      PORT_CLIENT_SECRET: ${{ secrets.PORT_CLIENT_SECRET }}
+      TF_VAR_skills_registry_token: ${{ secrets.PORT_SKILLS_REGISTRY_TOKEN }}
+      PORT_WORKFLOW_NODE_RUN_ID: ${{ inputs.port_workflow_node_run_id }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ">= 1.0"
+
+      - name: Terraform init
+        run: |
+          terraform init -reconfigure \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="key=${{ vars.TF_STATE_KEY }}" \
+            -backend-config="region=${{ vars.AWS_REGION }}"
+
+      - name: Terraform validate
+        run: terraform validate
+
+      - name: Terraform apply
+        run: terraform apply -input=false -auto-approve

@@ -62,7 +62,7 @@ terraform init -reconfigure \
 
 ## GitHub Actions Workflow
 
-The deploy workflow uses backend config from GitHub variables:
+The `sync-port-skills.yml` workflow uses backend config from GitHub variables:
 
 ```yaml
 - name: Terraform Init
@@ -81,6 +81,9 @@ Configure in GitHub repository Settings:
 **Secrets:**
 - `AWS_ACCESS_KEY_ID` — AWS credentials
 - `AWS_SECRET_ACCESS_KEY` — AWS credentials
+- `PORT_CLIENT_ID` — Port API client ID
+- `PORT_CLIENT_SECRET` — Port API client secret
+- `PORT_SKILLS_REGISTRY_TOKEN` — fine-grained token with read-only Contents access to the skills registry
 
 **Variables:**
 - `TF_STATE_BUCKET` = `port-tf-state-bucket-support`

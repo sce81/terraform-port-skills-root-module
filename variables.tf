@@ -1,118 +1,64 @@
-variable "skills_source" {
-  description = "GitHub source for skills child module"
+variable "skills_registry_owner" {
+  description = "GitHub organization or user that owns the source skills registry"
   type        = string
-  default     = "github.com/sce81/terraform-port-skills"
-  # Reference: https://github.com/sce81/terraform-port-skills
+  default     = "sce81"
 }
 
-variable "skills_ref" {
-  description = "Git reference (tag/branch) for skills module"
+variable "skills_registry_repository" {
+  description = "GitHub repository containing Markdown skill files"
   type        = string
-  default     = "1.0.0"
+  default     = "Port-Skills-Registry"
 }
 
-variable "skills" {
-  description = "List of skills to create"
-  type = list(object({
-    identifier   = string
-    title        = string
-    description  = string
-    instructions = string
-    relations    = optional(map(string), {})
-  }))
-  default = []
-}
-
-variable "skill_metadata" {
-  description = "Metadata configuration for skills"
-  type = list(object({
-    skill_identifier = string
-    owner            = string
-    team             = string
-    category         = string
-    use_cases        = list(string)
-    status           = string
-    version          = string
-    created_at       = string
-    updated_at       = string
-  }))
-  default = []
-}
-
-variable "skill_permissions" {
-  description = "Permission configurations for skills by team and role"
-  type = list(object({
-    team_identifier      = string
-    role_identifier      = string
-    skill_identifier     = string
-    actions              = list(string)
-  }))
-  default = []
-}
-
-variable "publicly_accessible_skills" {
-  description = "List of skill identifiers to make publicly accessible (guest role)"
-  type        = list(string)
-  default     = []
-}
-
-variable "skill_references" {
-  description = "Reference documentation for skills"
-  type = list(object({
-    skill_identifier     = string
-    reference_identifier = string
-    title                = string
-    reference_type       = string
-    url                  = string
-    documentation        = string
-    owner                = string
-  }))
-  default = []
-}
-
-variable "github_docs_repo_enabled" {
-  description = "Whether to fetch documentation from a GitHub repository"
-  type        = bool
-  default     = false
-}
-
-variable "github_docs_repo_owner" {
-  description = "GitHub repository owner"
-  type        = string
-  default     = ""
-}
-
-variable "github_docs_repo_name" {
-  description = "GitHub repository name"
-  type        = string
-  default     = ""
-}
-
-variable "github_docs_repo_token" {
-  description = "GitHub personal access token for private repository access"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "github_docs_repo_path" {
-  description = "Path within the repository where skill documentation is stored"
-  type        = string
-  default     = "skills"
-}
-
-variable "github_docs_repo_branch" {
-  description = "Git branch to fetch files from"
+variable "skills_registry_branch" {
+  description = "Registry branch to synchronize"
   type        = string
   default     = "main"
 }
 
-variable "github_repo_team_permissions" {
-  description = "Team permissions for all skill references from GitHub repository"
-  type = map(object({
-    team_identifier = string
-    role_identifier = string
-    actions         = list(string)
-  }))
-  default = {}
+variable "skills_registry_path" {
+  description = "Optional directory under which Markdown skill files are discovered; empty searches the whole repository"
+  type        = string
+  default     = "terraform-skills"
+}
+
+variable "skills_registry_token" {
+  description = "Fine-grained GitHub token with read-only Contents access to the skills registry"
+  type        = string
+  sensitive   = true
+}
+
+variable "default_skill_location" {
+  description = "Default Port skill installation scope when the SKILL.md front matter omits location"
+  type        = string
+  default     = "global"
+
+  validation {
+    condition     = contains(["global", "project"], var.default_skill_location)
+    error_message = "default_skill_location must be global or project."
+  }
+}
+
+variable "sync_workflow_roles" {
+  description = "Port roles allowed to trigger the skills registry sync"
+  type        = list(string)
+  default     = ["Member"]
+}
+
+variable "github_ocean_installation_id" {
+  description = "Installed GitHub Ocean integration identifier used by the Port workflow"
+  type        = string
+  default     = "github-ocean"
+}
+
+variable "github_sync_repository" {
+  description = "GitHub repository containing this Terraform root module and its sync workflow"
+  type        = string
+  default     = "terraform-port-skills-root-module"
+}
+
+variable "github_sync_workflow" {
+  description = "GitHub Actions workflow filename dispatched by Port"
+  type        = string
+  default     = "sync-port-skills.yml"
 }

@@ -1,49 +1,17 @@
-output "skill_blueprints" {
-  description = "Created skill blueprints"
-  value       = module.skills.skill_blueprints
-}
-
 output "skill_entities" {
-  description = "Created skill entities"
-  value       = module.skills.skill_entities
+  description = "Port skill entities synchronized from SKILL.md files"
+  value = {
+    for path, skill in port_entity.skill :
+    path => skill.identifier
+  }
 }
 
 output "skill_identifiers" {
-  description = "List of skill identifiers"
-  value       = module.skills.skill_identifiers
+  description = "Identifiers synchronized to the Port Skill Registry"
+  value       = values(port_entity.skill)[*].identifier
 }
 
-output "skill_metadata_entities" {
-  description = "Created skill metadata entities"
-  value       = module.skills.skill_metadata_entities
-}
-
-output "skill_permissions" {
-  description = "Created skill permission assignments"
-  value       = module.skills.skill_permissions
-}
-
-output "public_skill_permissions" {
-  description = "Public (guest) skill permission assignments"
-  value       = module.skills.public_skill_permissions
-}
-
-output "skill_references" {
-  description = "Created skill reference entities"
-  value       = module.skills.skill_references
-}
-
-output "skill_github_references" {
-  description = "Created skill reference entities from GitHub"
-  value       = module.skills.skill_github_references
-}
-
-output "github_fetched_files" {
-  description = "List of .md files discovered and fetched from GitHub"
-  value       = module.skills.github_fetched_files
-}
-
-output "github_repo_permissions" {
-  description = "Applied GitHub repository team permissions"
-  value       = module.skills.github_repo_permissions
+output "skills_registry_sync_workflow_identifier" {
+  description = "Port workflow identifier that dispatches the registry sync"
+  value       = port_workflow.sync_skills_registry.identifier
 }
