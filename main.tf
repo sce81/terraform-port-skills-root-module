@@ -1,5 +1,5 @@
 module "skills_registry" {
-  source = "github.com/sce81/terraform-port-skills-registry?ref=v1.0.3"
+  source = "github.com/sce81/terraform-port-skills-registry?ref=v1.0.4"
 
   skills_registry_owner        = var.skills_registry_owner
   skills_registry_repository   = var.skills_registry_repository

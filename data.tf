@@ -1,3 +1,3 @@
 locals {
-  skills_registry_child_module_release = "v1.0.3"
+  skills_registry_child_module_release = "v1.0.4"
 }
