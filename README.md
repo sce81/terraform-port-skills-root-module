@@ -112,10 +112,8 @@ The root module's `Development` GitHub Environment requires these secrets:
 
 - `PORT_CLIENT_ID`
 - `PORT_CLIENT_SECRET`
-- `PORT_SKILLS_REGISTRY_TOKEN` — fine-grained, read-only **Contents** access to
-  `sce81/Port-Skills-Registry`
-- `PORT_SKILLS_MODULE_TOKEN` — fine-grained, read-only **Contents** access to
-  `sce81/terraform-port-skills-registry`
+- `PORT_SKILLS_REGISTRY_TOKEN` — fine-grained, read-only **Contents** access to both
+  `sce81/Port-Skills-Registry` and `sce81/terraform-port-skills-registry`
 - `AWS_ACCESS_KEY_ID`
 - `AWS_SECRET_ACCESS_KEY`
 

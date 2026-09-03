@@ -28,8 +28,8 @@ jobs:
     env:
       PORT_CLIENT_ID: ${{ secrets.PORT_CLIENT_ID }}
       PORT_CLIENT_SECRET: ${{ secrets.PORT_CLIENT_SECRET }}
+      PORT_SKILLS_REGISTRY_TOKEN: ${{ secrets.PORT_SKILLS_REGISTRY_TOKEN }}
       TF_VAR_skills_registry_token: ${{ secrets.PORT_SKILLS_REGISTRY_TOKEN }}
-      PORT_SKILLS_MODULE_TOKEN: ${{ secrets.PORT_SKILLS_MODULE_TOKEN }}
       PORT_WORKFLOW_NODE_RUN_ID: ${{ inputs.port_workflow_node_run_id }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -46,7 +46,7 @@ jobs:
 
       - name: Configure access to private child modules
         run: |
-          git config --global url."https://x-access-token:${PORT_SKILLS_MODULE_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git config --global url."https://x-access-token:${PORT_SKILLS_REGISTRY_TOKEN}@github.com/".insteadOf "https://github.com/"
 
       - name: Terraform init
         run: |

@@ -27,9 +27,9 @@ jobs:
 
       - name: Configure access to private child modules
         env:
-          PORT_SKILLS_MODULE_TOKEN: ${{ secrets.PORT_SKILLS_MODULE_TOKEN }}
+          PORT_SKILLS_REGISTRY_TOKEN: ${{ secrets.PORT_SKILLS_REGISTRY_TOKEN }}
         run: |
-          git config --global url."https://x-access-token:${PORT_SKILLS_MODULE_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git config --global url."https://x-access-token:${PORT_SKILLS_REGISTRY_TOKEN}@github.com/".insteadOf "https://github.com/"
 
       - name: Terraform Init (no backend)
         run: terraform init -backend=false
