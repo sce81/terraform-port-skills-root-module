@@ -1,13 +1,11 @@
 variable "skills_registry_owner" {
-  description = "GitHub organization or user that owns the source skills registry"
+  description = "GitHub organization or user that owns the source skills registry; set this to your organization or username"
   type        = string
-  default     = "sce81"
 }
 
 variable "skills_registry_repository" {
-  description = "GitHub repository containing Markdown skill files"
+  description = "GitHub repository containing your Markdown skill files; do not use this module repository"
   type        = string
-  default     = "Port-Skills-Registry"
 }
 
 variable "skills_registry_branch" {
@@ -23,9 +21,10 @@ variable "skills_registry_path" {
 }
 
 variable "skills_registry_token" {
-  description = "Fine-grained GitHub token with read-only Contents access to the skills registry"
+  description = "Optional fine-grained GitHub token with read-only Contents access to a private skills registry"
   type        = string
   sensitive   = true
+  default     = ""
 }
 
 variable "default_skill_location" {

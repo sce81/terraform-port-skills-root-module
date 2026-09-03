@@ -2,9 +2,9 @@
 
 This root module composes the versioned
 [`terraform-port-skills-registry`](https://github.com/sce81/terraform-port-skills-registry)
-child module. The child synchronizes Markdown files from `sce81/Port-Skills-Registry`
-to entities in Port's `skill` blueprint. Terraform runs only in GitHub Actions;
-development teams do not run it from their machines.
+child module. The child synchronizes Markdown files from the skills repository you
+configure to entities in Port's `skill` blueprint. Terraform runs only in GitHub
+Actions; development teams do not run it from their machines.
 
 ## Who should use this
 
@@ -18,7 +18,7 @@ development teams do not run it from their machines.
 
 ```mermaid
 flowchart LR
-  Registry["Port-Skills-Registry"] -->|"Markdown merged to main"| Trigger["Registry GitHub Action"]
+  Registry["Your skills repository"] -->|"Markdown merged to main"| Trigger["Registry GitHub Action"]
   Trigger -->|"workflow_dispatch"| Sync["Root-module GitHub Action"]
   Port["Port self-service workflow"] -->|"GitHub Ocean"| Sync
   Sync -->|"Terraform apply"| Child["Versioned child module"]
@@ -27,14 +27,36 @@ flowchart LR
 
 There are two safe ways to synchronize:
 
-1. Merge a Markdown change into `Port-Skills-Registry/main`. The registry automation
-   dispatches the root-module sync automatically.
+1. Merge a Markdown change into your configured skills repository's `main` branch.
+   Its automation can dispatch the root-module sync automatically.
 2. Run **Sync Port Skills Registry** from Port. It has no form fields and always uses
    the `Development` GitHub Environment.
 
 Each sync discovers Markdown files below `terraform-skills/` recursively. Terraform
 creates or updates one `skill` entity per file, and deletes a managed entity when its
 source file is removed.
+
+## Configure your skills repository
+
+The skills repository is not fixed to `sce81/Port-Skills-Registry`. Set these required
+root-module variables to the repository your team owns:
+
+- `skills_registry_owner` — its GitHub organization or username, such as `acme-platform`.
+- `skills_registry_repository` — its repository name, such as `engineering-skills`.
+
+The following variables have defaults but can be changed when your repository differs:
+
+- `skills_registry_branch` — source branch; defaults to `main`.
+- `skills_registry_path` — recursively discovered Markdown directory; defaults to
+  `terraform-skills`.
+- `skills_registry_token` — empty for a public repository; for a private repository,
+  supply a fine-grained token with read-only Contents access to that repository.
+- `default_skill_location` — `global` or `project`; defaults to `global`.
+
+For GitHub Actions runs, configure the `Development` environment variables
+`SKILLS_REGISTRY_OWNER`, `SKILLS_REGISTRY_REPOSITORY`, `SKILLS_REGISTRY_BRANCH`, and
+`SKILLS_REGISTRY_PATH`. Configure `PORT_SKILLS_REGISTRY_TOKEN` as a secret only when
+the selected skills repository is private.
 
 ## Write a skill
 
@@ -112,8 +134,8 @@ The root module's `Development` GitHub Environment requires these secrets:
 
 - `PORT_CLIENT_ID`
 - `PORT_CLIENT_SECRET`
-- `PORT_SKILLS_REGISTRY_TOKEN` — fine-grained, read-only **Contents** access to both
-  `sce81/Port-Skills-Registry` and `sce81/terraform-port-skills-registry`
+- `PORT_SKILLS_REGISTRY_TOKEN` — fine-grained, read-only **Contents** access to the
+  configured skills repository; it is not needed for a public repository
 - `AWS_ACCESS_KEY_ID`
 - `AWS_SECRET_ACCESS_KEY`
 
@@ -130,9 +152,9 @@ then applies the synchronization.
 The extraction migration has moved the existing Port blueprint, skill entities, and
 sync workflow to the child-module addresses without recreation.
 
-For automatic syncs, `Port-Skills-Registry` needs the repository secret
-`PORT_SKILLS_SYNC_DISPATCH_TOKEN`. It needs **Actions: Read and write** access to
-`sce81/terraform-port-skills-root-module`; the source repository's default
+For automatic syncs, your skills repository needs the repository secret
+`PORT_SKILLS_SYNC_DISPATCH_TOKEN`. It needs **Actions: Read and write** access to the
+repository hosting this root module; the source repository's default
 `GITHUB_TOKEN` cannot dispatch workflows in another repository.
 
 ## Troubleshooting the sync
