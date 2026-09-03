@@ -1,77 +1,32 @@
-# The single Port Skill Registry blueprint. Import `skill` before the first
-# apply if it already exists in Port.
-resource "port_blueprint" "skill" {
-  identifier  = "skill"
-  title       = "Skill"
-  icon        = "Learn"
-  description = "Reusable instructions synchronized from the GitHub Skills Registry."
+module "skills_registry" {
+  source = "github.com/sce81/terraform-port-skills-registry?ref=v1.0.0"
 
-  properties = {
-    string_props = {
-      description = {
-        title       = "Description"
-        description = "What the skill does and when to use it"
-        required    = true
-      }
-      instructions = {
-        title       = "Instructions"
-        description = "Instructions from the source SKILL.md"
-        format      = "markdown"
-        required    = true
-      }
-      location = {
-        title       = "Location"
-        description = "Target installation scope"
-        enum        = ["global", "project"]
-        required    = true
-      }
-    }
-    array_props = {
-      references = {
-        title        = "References"
-        description  = "Source registry location for this skill"
-        object_items = {}
-      }
-      assets = {
-        title        = "Assets"
-        description  = "Reserved for skill assets"
-        object_items = {}
-      }
-    }
-  }
+  skills_registry_owner         = var.skills_registry_owner
+  skills_registry_repository    = var.skills_registry_repository
+  skills_registry_branch        = var.skills_registry_branch
+  skills_registry_path          = var.skills_registry_path
+  skills_registry_token         = var.skills_registry_token
+  default_skill_location        = var.default_skill_location
+  sync_workflow_roles           = var.sync_workflow_roles
+  github_ocean_installation_id  = var.github_ocean_installation_id
+  github_sync_owner             = var.github_sync_owner
+  github_sync_repository        = var.github_sync_repository
+  github_sync_workflow          = var.github_sync_workflow
 }
 
-resource "port_entity" "skill" {
-  for_each = local.skill_documents
+# Temporary state migrations. Remove after a successful remote apply verifies
+# the resources are managed through the v1.0.0 child module.
+moved {
+  from = port_blueprint.skill
+  to   = module.skills_registry.port_blueprint.skill
+}
 
-  blueprint = port_blueprint.skill.identifier
-  identifier = try(
-    each.value.front_matter.name,
-    lower(replace(basename(each.key), ".md", "")),
-  )
-  title = try(
-    each.value.front_matter.title,
-    trimspace(try(regexall("(?m)^#\\s+(.+)$", each.value.instructions)[0][0], replace(title(replace(basename(each.key), ".md", "")), "_", " "))),
-  )
+moved {
+  from = port_entity.skill
+  to   = module.skills_registry.port_entity.skill
+}
 
-  properties = {
-    string_props = {
-      description = try(
-        each.value.front_matter.description,
-        trimspace(try(regexall("(?m)^#\\s+(.+)$", each.value.instructions)[0][0], "Instructions synchronized from ${each.key}.")),
-      )
-      instructions = each.value.instructions
-      location     = try(each.value.front_matter.location, var.default_skill_location)
-    }
-    array_props = {
-      object_items = {
-        references = [jsonencode({
-          path        = each.key
-          content     = each.value.instructions
-          description = each.value.source_url
-        })]
-        assets = []
-      }
-    }
-  }
+moved {
+  from = port_workflow.sync_skills_registry
+  to   = module.skills_registry.port_workflow.sync_skills_registry
 }

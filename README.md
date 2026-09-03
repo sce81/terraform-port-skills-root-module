@@ -1,9 +1,10 @@
 # Port Skills Registry Sync
 
-This module is the deployment path for shared engineering guidance. It synchronizes
-Markdown files from `sce81/Port-Skills-Registry` to entities in Port's `skill`
-blueprint. Terraform runs only in GitHub Actions; development teams do not run it
-from their machines.
+This root module composes the versioned
+[`terraform-port-skills-registry`](https://github.com/sce81/terraform-port-skills-registry)
+child module. The child synchronizes Markdown files from `sce81/Port-Skills-Registry`
+to entities in Port's `skill` blueprint. Terraform runs only in GitHub Actions;
+development teams do not run it from their machines.
 
 ## Who should use this
 
@@ -20,7 +21,8 @@ flowchart LR
   Registry["Port-Skills-Registry"] -->|"Markdown merged to main"| Trigger["Registry GitHub Action"]
   Trigger -->|"workflow_dispatch"| Sync["Root-module GitHub Action"]
   Port["Port self-service workflow"] -->|"GitHub Ocean"| Sync
-  Sync -->|"Terraform apply"| Skills["Port Skill Registry"]
+  Sync -->|"Terraform apply"| Child["Versioned child module"]
+  Child -->|"manages"| Skills["Port Skill Registry"]
 ```
 
 There are two safe ways to synchronize:
@@ -112,6 +114,8 @@ The root module's `Development` GitHub Environment requires these secrets:
 - `PORT_CLIENT_SECRET`
 - `PORT_SKILLS_REGISTRY_TOKEN` — fine-grained, read-only **Contents** access to
   `sce81/Port-Skills-Registry`
+- `PORT_SKILLS_MODULE_TOKEN` — fine-grained, read-only **Contents** access to
+  `sce81/terraform-port-skills-registry`
 - `AWS_ACCESS_KEY_ID`
 - `AWS_SECRET_ACCESS_KEY`
 
@@ -122,7 +126,12 @@ It also requires:
 - `TF_STATE_REGION`
 
 The GitHub workflow imports an existing `skill` blueprint into the configured remote
-state when needed, validates Terraform, then applies the synchronization.
+state when needed, initializes the pinned `v1.0.0` child module, validates Terraform,
+then applies the synchronization.
+
+The first remote apply after this module extraction moves the existing Port blueprint,
+skill entities, and sync workflow to the child-module addresses. The root's temporary
+`moved` blocks prevent those resources from being recreated.
 
 For automatic syncs, `Port-Skills-Registry` needs the repository secret
 `PORT_SKILLS_SYNC_DISPATCH_TOKEN`. It needs **Actions: Read and write** access to
@@ -141,6 +150,7 @@ For automatic syncs, `Port-Skills-Registry` needs the repository secret
 ## Ownership and review
 
 Development teams own the correctness of their guidance. Platform owners own the
-sync workflow, Port blueprint, GitHub Environment, and Terraform state. Review this
-README whenever the registry layout, credential contract, or deployment workflow
-changes.
+sync workflow, GitHub Environment, Terraform state, and child-module releases. The
+child module owns every Port resource; the root module only wires its released version
+and inputs. Review this README whenever the registry layout, credential contract, or
+deployment workflow changes.

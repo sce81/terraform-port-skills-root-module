@@ -51,6 +51,12 @@ variable "github_ocean_installation_id" {
   default     = "github-ocean"
 }
 
+variable "github_sync_owner" {
+  description = "GitHub organization or user that owns the repository containing the sync workflow"
+  type        = string
+  default     = "sce81"
+}
+
 variable "github_sync_repository" {
   description = "GitHub repository containing this Terraform root module and its sync workflow"
   type        = string
