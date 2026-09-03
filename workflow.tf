@@ -29,7 +29,6 @@ resource "port_workflow" "sync_skills_registry" {
               description = "GitHub environment that supplies the Port and registry credentials"
               default     = "Development"
               enum        = ["Development", "Staging", "Production"]
-              required    = false
             }
           }
         }
