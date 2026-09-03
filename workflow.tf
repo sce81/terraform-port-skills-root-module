@@ -19,20 +19,6 @@ resource "port_workflow" "sync_skills_registry" {
         roles = var.sync_workflow_roles
       }
 
-      user_inputs {
-        order_properties = ["environment"]
-
-        user_properties = {
-          string_props = {
-            environment = {
-              title       = "Environment"
-              description = "GitHub environment that supplies the Port and registry credentials"
-              default     = "Development"
-              enum        = ["Development", "Staging", "Production"]
-            }
-          }
-        }
-      }
     }
   }
 
@@ -53,7 +39,7 @@ resource "port_workflow" "sync_skills_registry" {
         workflow             = var.github_sync_workflow
         reportWorkflowStatus = true
         workflowInputs = {
-          environment               = "{{ .outputs[\"trigger\"].environment }}"
+          environment               = "Development"
           port_workflow_node_run_id = "{{ .workflowNodeRun.identifier }}"
         }
       })
