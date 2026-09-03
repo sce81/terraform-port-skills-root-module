@@ -13,20 +13,3 @@ module "skills_registry" {
   github_sync_repository       = var.github_sync_repository
   github_sync_workflow         = var.github_sync_workflow
 }
-
-# Temporary state migrations. Remove after a successful remote apply verifies
-# the resources are managed through the v1.0.0 child module.
-moved {
-  from = port_blueprint.skill
-  to   = module.skills_registry.port_blueprint.skill
-}
-
-moved {
-  from = port_entity.skill
-  to   = module.skills_registry.port_entity.skill
-}
-
-moved {
-  from = port_workflow.sync_skills_registry
-  to   = module.skills_registry.port_workflow.sync_skills_registry
-}

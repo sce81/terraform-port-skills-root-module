@@ -127,9 +127,8 @@ The GitHub workflow imports an existing `skill` blueprint into the configured re
 state when needed, initializes the pinned `v1.0.0` child module, validates Terraform,
 then applies the synchronization.
 
-The first remote apply after this module extraction moves the existing Port blueprint,
-skill entities, and sync workflow to the child-module addresses. The root's temporary
-`moved` blocks prevent those resources from being recreated.
+The extraction migration has moved the existing Port blueprint, skill entities, and
+sync workflow to the child-module addresses without recreation.
 
 For automatic syncs, `Port-Skills-Registry` needs the repository secret
 `PORT_SKILLS_SYNC_DISPATCH_TOKEN`. It needs **Actions: Read and write** access to
