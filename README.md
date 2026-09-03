@@ -147,7 +147,7 @@ It also requires:
 - `TF_STATE_REGION`
 
 The GitHub workflow imports an existing `skill` blueprint into the configured remote
-state when needed, initializes the pinned `v1.0.2` child module, validates Terraform,
+state when needed, initializes the pinned `v1.0.3` child module, validates Terraform,
 then applies the synchronization.
 
 The extraction migration has moved the existing Port blueprint, skill entities, and
