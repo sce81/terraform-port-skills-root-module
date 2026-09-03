@@ -1,7 +1,7 @@
 resource "port_workflow" "sync_skills_registry" {
   identifier                = "sync_port_skills_registry"
   title                     = "Sync Port Skills Registry"
-  description               = "Synchronizes SKILL.md files from GitHub to the Port Skill Registry through Terraform."
+  description               = "Synchronizes Markdown skill files from GitHub to the Port Skill Registry through Terraform."
   icon                      = "Github"
   category                  = "OSS Terraform"
   allow_anyone_to_view_runs = true
@@ -29,7 +29,7 @@ resource "port_workflow" "sync_skills_registry" {
               description = "GitHub environment that supplies the Port and registry credentials"
               default     = "Development"
               enum        = ["Development", "Staging", "Production"]
-              required    = true
+              required    = false
             }
           }
         }

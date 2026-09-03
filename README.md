@@ -102,3 +102,11 @@ The workflow runs `terraform init`, imports the existing shared `skill`
 blueprint when it is not yet in state, then runs `terraform validate` and
 `terraform apply`.
 GitHub Ocean reports the run outcome back to Port.
+
+## Registry merge automation
+
+Manual Port runs can leave **Environment** blank; it defaults to `Development`.
+Changes merged to `main` under `terraform-skills/**/*.md` in
+`sce81/Port-Skills-Registry` also dispatch this workflow automatically. The
+registry repository requires a `PORT_SKILLS_SYNC_DISPATCH_TOKEN` secret with
+Actions read/write access to this root-module repository.
