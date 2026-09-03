@@ -10,7 +10,7 @@ Actions; development teams do not run it from their machines.
 
 | Audience | Start here |
 | --- | --- |
-| Development teams | Add or update Markdown guidance in `Port-Skills-Registry/terraform-skills/`. |
+| Development teams | Add or update Markdown guidance in any folder of their configured skills repository. |
 | Platform owners | Configure GitHub Environment credentials and maintain Terraform state access. |
 | Port users | Start **Sync Port Skills Registry** in Port for an on-demand synchronization. |
 
@@ -32,9 +32,9 @@ There are two safe ways to synchronize:
 2. Run **Sync Port Skills Registry** from Port. It has no form fields and always uses
    the `Development` GitHub Environment.
 
-Each sync discovers Markdown files below `terraform-skills/` recursively. Terraform
-creates or updates one `skill` entity per file, and deletes a managed entity when its
-source file is removed.
+Each sync discovers Markdown files recursively across the configured repository.
+Terraform creates or updates one `skill` entity per file, deletes a managed entity
+when its source file is removed, and prefixes its Port title with the source folder.
 
 ## Configure your skills repository
 
@@ -47,8 +47,8 @@ root-module variables to the repository your team owns:
 The following variables have defaults but can be changed when your repository differs:
 
 - `skills_registry_branch` — source branch; defaults to `main`.
-- `skills_registry_path` — recursively discovered Markdown directory; defaults to
-  `terraform-skills`.
+- `skills_registry_path` — optionally limits recursive discovery to one directory;
+  defaults to empty and discovers Markdown files anywhere in the repository.
 - `skills_registry_token` — empty for a public repository; for a private repository,
   supply a fine-grained token with read-only Contents access to that repository.
 - `default_skill_location` — `global` or `project`; defaults to `global`.
@@ -60,11 +60,12 @@ the selected skills repository is private.
 
 ## Write a skill
 
-Create a Markdown file under `terraform-skills/`. File names become lowercase Port
-identifiers while preserving underscores:
+Create a Markdown file in any folder. File names become lowercase Port identifiers
+while preserving underscores; the Port title and `Source Folder` property identify the
+folder that contains it:
 
 ```text
-terraform-skills/Terraform_Standards.md → terraform_standards
+platform-guidance/Terraform_Standards.md → terraform_standards, titled "[platform-guidance] Terraform Standards"
 ```
 
 Use a clear H1 title and keep the document focused on one team task. The H1 becomes
@@ -146,7 +147,7 @@ It also requires:
 - `TF_STATE_REGION`
 
 The GitHub workflow imports an existing `skill` blueprint into the configured remote
-state when needed, initializes the pinned `v1.0.0` child module, validates Terraform,
+state when needed, initializes the pinned `v1.0.2` child module, validates Terraform,
 then applies the synchronization.
 
 The extraction migration has moved the existing Port blueprint, skill entities, and
@@ -163,7 +164,7 @@ repository hosting this root module; the source repository's default
 | --- | --- | --- |
 | Registry merge does not start a sync | Dispatch token is missing or lacks Actions write access. | Check `PORT_SKILLS_SYNC_DISPATCH_TOKEN` in `Port-Skills-Registry`. |
 | Sync fails during `terraform init` | The AWS identity cannot read the configured S3 state object. | Grant state and lock-file access for `TF_STATE_KEY`. |
-| A skill is not created | The file is outside `terraform-skills/` or is not Markdown. | Move it under `terraform-skills/` with a `.md` extension. |
+| A skill is not created | The file is not Markdown or is outside the optional configured path. | Use a `.md` extension, or clear `SKILLS_REGISTRY_PATH` to search all folders. |
 | Port rejects an entity | Required metadata does not match the `skill` blueprint. | Use front matter and confirm required fields. |
 
 ## Ownership and review

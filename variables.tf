@@ -15,9 +15,9 @@ variable "skills_registry_branch" {
 }
 
 variable "skills_registry_path" {
-  description = "Optional directory under which Markdown skill files are discovered; empty searches the whole repository"
+  description = "Optional directory under which Markdown skill files are discovered; empty discovers Markdown files anywhere in the repository"
   type        = string
-  default     = "terraform-skills"
+  default     = ""
 }
 
 variable "skills_registry_token" {
