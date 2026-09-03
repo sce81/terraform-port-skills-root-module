@@ -1,112 +1,146 @@
 # Port Skills Registry Sync
 
-Synchronizes Markdown skill files from a GitHub repository into Port's shared `skill`
-blueprint. Each source file becomes one Port skill entity.
+This module is the deployment path for shared engineering guidance. It synchronizes
+Markdown files from `sce81/Port-Skills-Registry` to entities in Port's `skill`
+blueprint. Terraform runs only in GitHub Actions; development teams do not run it
+from their machines.
 
-## What it manages
+## Who should use this
 
-- The shared Port `skill` blueprint: `description`, `instructions`, `location`,
-  `references`, and `assets`.
-- One `skill` entity per discovered Markdown file.
-- The `sync_port_skills_registry` Port workflow, which dispatches this module's
-  GitHub Actions sync job through GitHub Ocean.
+| Audience | Start here |
+| --- | --- |
+| Development teams | Add or update Markdown guidance in `Port-Skills-Registry/terraform-skills/`. |
+| Platform owners | Configure GitHub Environment credentials and maintain Terraform state access. |
+| Port users | Start **Sync Port Skills Registry** in Port for an on-demand synchronization. |
 
-Skills removed from GitHub are removed from Port on the next Terraform apply.
+## How synchronization works
 
-## Source repository
-
-Defaults:
-
-```hcl
-skills_registry_owner      = "sce81"
-skills_registry_repository = "Port-Skills-Registry"
-skills_registry_branch     = "main"
-skills_registry_path       = "terraform-skills"
+```mermaid
+flowchart LR
+  Registry["Port-Skills-Registry"] -->|"Markdown merged to main"| Trigger["Registry GitHub Action"]
+  Trigger -->|"workflow_dispatch"| Sync["Root-module GitHub Action"]
+  Port["Port self-service workflow"] -->|"GitHub Ocean"| Sync
+  Sync -->|"Terraform apply"| Skills["Port Skill Registry"]
 ```
 
-`skills_registry_path` is optional. Set it to empty to discover Markdown files
-at every depth in the repository.
+There are two safe ways to synchronize:
 
-Files may use YAML front matter to explicitly set `name`, `title`, `description`,
-and `location`:
+1. Merge a Markdown change into `Port-Skills-Registry/main`. The registry automation
+   dispatches the root-module sync automatically.
+2. Run **Sync Port Skills Registry** from Port. It has no form fields and always uses
+   the `Development` GitHub Environment.
+
+Each sync discovers Markdown files below `terraform-skills/` recursively. Terraform
+creates or updates one `skill` entity per file, and deletes a managed entity when its
+source file is removed.
+
+## Write a skill
+
+Create a Markdown file under `terraform-skills/`. File names become lowercase Port
+identifiers while preserving underscores:
+
+```text
+terraform-skills/Terraform_Standards.md → terraform_standards
+```
+
+Use a clear H1 title and keep the document focused on one team task. The H1 becomes
+the Port title and description when front matter is not present.
+
+```markdown
+# Terraform Standards
+
+Use `terraform fmt` before committing configuration changes.
+```
+
+Optional YAML front matter gives explicit metadata:
 
 ```markdown
 ---
-name: incident-response
-description: Coordinate investigation and recovery during an incident.
+name: terraform_standards
+title: Terraform Standards
+description: Shared conventions for Terraform development.
 location: global
 ---
 
-# Incident response
+# Terraform Standards
 
-1. Assess the impact.
-2. Engage the on-call team.
+Use `terraform fmt` before committing configuration changes.
 ```
 
-When it is present, `name` becomes the Port entity identifier, `description`
-becomes the entity description, and all content after the closing front-matter
-delimiter becomes the Port `instructions` value. `location` is optional and
-defaults to `global`.
+`location` is optional and defaults to `global`.
 
-For registry files without front matter, the lowercased file name becomes the
-identifier (`Terraform_Standards.md` becomes `terraform_standards`) and the first
-Markdown heading becomes the title and description. This supports the current
-`terraform-skills/*.md` layout in Port-Skills-Registry.
+## Team documentation standard
+
+Treat each Markdown file as a maintained engineering contract:
+
+- Write for the team that will act on the guidance. State the outcome first, then
+  prerequisites, ordered steps, and expected result.
+- Use descriptive H1/H2 headings, short paragraphs, and code blocks for commands or
+  configuration. Add a diagram only when it clarifies a non-obvious flow.
+- Explain the reason behind rules, not only the rule itself. Link to the canonical
+  source instead of duplicating large references.
+- Include a **Troubleshooting** section for common failures, their likely cause, and
+  the next action. Update it when support patterns emerge.
+- Review the file with the code or process it documents. Remove or correct outdated
+  guidance in the same pull request.
+
+Recommended template:
+
+```markdown
+# <Task or standard>
+
+<One-sentence outcome and intended audience.>
+
+## When to use this
 
 ## Prerequisites
 
-- Port credentials available as `PORT_CLIENT_ID` and `PORT_CLIENT_SECRET`.
-- A fine-grained GitHub token with read-only **Contents** access to
-  `sce81/Port-Skills-Registry`, supplied as `TF_VAR_skills_registry_token`.
-- An installed Port GitHub Ocean integration named `github-ocean`, or override
-  `github_ocean_installation_id`.
-- S3 backend configuration for Terraform state.
+## Steps
 
-The GitHub Actions sync workflow imports an existing `skill` blueprint into
-the configured remote state before its first apply. No local Terraform command
-is required.
+## Expected result
 
-## Local use
+## Troubleshooting
 
-```bash
-export PORT_CLIENT_ID="..."
-export PORT_CLIENT_SECRET="..."
-export TF_VAR_skills_registry_token="..."
-
-terraform init -reconfigure -backend-config=backend.hcl
-terraform plan
-terraform apply
+## Related documentation
 ```
 
-## Port-triggered sync
+## Platform setup
 
-The Terraform apply creates **Sync Port Skills Registry** in Port. A user selects
-a GitHub environment, and the workflow dispatches
-`.github/workflows/sync-port-skills.yml` in this repository.
-
-Configure these environment-scoped GitHub secrets:
+The root module's `Development` GitHub Environment requires these secrets:
 
 - `PORT_CLIENT_ID`
 - `PORT_CLIENT_SECRET`
-- `PORT_SKILLS_REGISTRY_TOKEN`
+- `PORT_SKILLS_REGISTRY_TOKEN` — fine-grained, read-only **Contents** access to
+  `sce81/Port-Skills-Registry`
 - `AWS_ACCESS_KEY_ID`
 - `AWS_SECRET_ACCESS_KEY`
 
-Configure these environment-scoped GitHub variables:
+It also requires:
 
-- `TF_STATE_REGION`
 - `TF_STATE_BUCKET`
 - `TF_STATE_KEY`
+- `TF_STATE_REGION`
 
-The workflow runs `terraform init`, imports the existing shared `skill`
-blueprint when it is not yet in state, then runs `terraform validate` and
-`terraform apply`.
-GitHub Ocean reports the run outcome back to Port.
+The GitHub workflow imports an existing `skill` blueprint into the configured remote
+state when needed, validates Terraform, then applies the synchronization.
 
-## Registry merge automation
+For automatic syncs, `Port-Skills-Registry` needs the repository secret
+`PORT_SKILLS_SYNC_DISPATCH_TOKEN`. It needs **Actions: Read and write** access to
+`sce81/terraform-port-skills-root-module`; the source repository's default
+`GITHUB_TOKEN` cannot dispatch workflows in another repository.
 
-The Port workflow has no Environment field; it always dispatches the configured
-`Development` GitHub environment. Changes merged to `main` under `terraform-skills/**/*.md` in
-`sce81/Port-Skills-Registry` also dispatch this workflow automatically. The
-registry repository requires a `PORT_SKILLS_SYNC_DISPATCH_TOKEN` secret with
-Actions read/write access to this root-module repository.
+## Troubleshooting the sync
+
+| Symptom | Likely cause | Next action |
+| --- | --- | --- |
+| Registry merge does not start a sync | Dispatch token is missing or lacks Actions write access. | Check `PORT_SKILLS_SYNC_DISPATCH_TOKEN` in `Port-Skills-Registry`. |
+| Sync fails during `terraform init` | The AWS identity cannot read the configured S3 state object. | Grant state and lock-file access for `TF_STATE_KEY`. |
+| A skill is not created | The file is outside `terraform-skills/` or is not Markdown. | Move it under `terraform-skills/` with a `.md` extension. |
+| Port rejects an entity | Required metadata does not match the `skill` blueprint. | Use front matter and confirm required fields. |
+
+## Ownership and review
+
+Development teams own the correctness of their guidance. Platform owners own the
+sync workflow, Port blueprint, GitHub Environment, and Terraform state. Review this
+README whenever the registry layout, credential contract, or deployment workflow
+changes.
